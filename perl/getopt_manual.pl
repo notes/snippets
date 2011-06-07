@@ -3,7 +3,7 @@ for my $arg (@ARGV) {
     next if $arg !~ /^--/;
     my ($opt, $value) = split(/=/, $arg, 2);
     if (defined $value) {
-        # 引数付きオプション
+        # with optarg
         if ($opt eq "--hello") {
             print "Hello, ${value}!\n";
         } elsif ($opt eq "--bye") {
@@ -12,7 +12,7 @@ for my $arg (@ARGV) {
             usage();
         }
     } else {
-        # 引数無しオプション
+        # boolean flag only
         if ($opt eq "--foo-flag") {
             print "foo\n";
         } elsif ($opt eq "--bar-flag") {

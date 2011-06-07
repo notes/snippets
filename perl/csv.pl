@@ -2,12 +2,12 @@ use Text::CSV;
 
 my $c = new Text::CSV;
 
-# 普通
+# normal
 $c->parse("a,b,c,d,e");
-my @f = $c->fields();
-print "[$f[0]] [$f[2]] [$f[4]]\n";
+my @f1 = $c->fields();
+print "[$f1[0]] [$f1[2]] [$f1[4]]\n";
 
-# quoteしてあってもOK
+# with quote and escape
 $c->parse('"a",b,"c,c",d,"e""e"');
-my @f = $c->fields();
-print "[$f[0]] [$f[2]] [$f[4]]\n";
+my @f2 = $c->fields();
+print "[$f2[0]] [$f2[2]] [$f2[4]]\n";
