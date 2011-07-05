@@ -1,3 +1,4 @@
+use strict;
 use Getopt::Std;
 
 my %opts;
