@@ -24,5 +24,3 @@ while (1) {
     print "From $addr:$port [$buffer]\n";
 }
 
-exit(0);
-
