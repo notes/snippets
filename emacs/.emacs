@@ -1,0 +1,6 @@
+(setq load-path (append '("/path/to/site-lisp") load-path))
+;(mac-add-ignore-shortcut '(ctl ? ))
+(global-set-key (kbd "M-n") '(lambda () (interactive) (scroll-up 1)))
+(global-set-key (kbd "M-p") '(lambda () (interactive) (scroll-down 1)))
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+(autoload 'ibuffer "ibuffer" "List buffers." t)
