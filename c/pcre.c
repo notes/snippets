@@ -20,21 +20,15 @@ int main(int argc, char **argv)
     return -1;
   }
 
+  // the most memory sufficient way to extract subpattern
+  // if you don't mind copying overhead, use pcre_{get,copy}_named_substring[list] instead
   int service_num = pcre_get_stringnumber(p, "service");
-  if (service_num == PCRE_ERROR_NOSUBSTRING) {
-    fprintf(stderr, "subpattern named `service' not found\n");
-    return -1;
-  }
-
   int port_num = pcre_get_stringnumber(p, "port");
-  if (port_num == PCRE_ERROR_NOSUBSTRING) {
-    fprintf(stderr, "subpattern named `port' not found\n");
-    return -1;
-  }
-
   int transport_num = pcre_get_stringnumber(p, "transport");
-  if (transport_num == PCRE_ERROR_NOSUBSTRING) {
-    fprintf(stderr, "subpattern named `transport' not found\n");
+  if (service_num == PCRE_ERROR_NOSUBSTRING || 
+      port_num == PCRE_ERROR_NOSUBSTRING || 
+      transport_num == PCRE_ERROR_NOSUBSTRING) {
+    fprintf(stderr, "one of the named subpatterns not found\n");
     return -1;
   }
 
@@ -42,6 +36,7 @@ int main(int argc, char **argv)
   char line[BUFSIZ+1];
   while (fgets(line, BUFSIZ, f)) {
     // array size should be (num_of_subpatterns + 1) * 3
+    // offset information is returned in the first 2/3, rest is the working space
     int ovector[12];
     int exec_ret = pcre_exec(p, pe, line, strlen(line), 0, 0, ovector, 12);
     if (exec_ret == PCRE_ERROR_NOMATCH) {
