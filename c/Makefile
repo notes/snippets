@@ -8,5 +8,8 @@ pcre: pcre.c
 pcap: pcap.c
 	$(CC) $(CFLAGS) -o pcap pcap.c $(LDFLAGS) -lpcap
 
+pcap_sort: pcap_sort.c
+	$(CC) $(CFLAGS) -o pcap_sort pcap_sort.c $(LDFLAGS) -lpcap
+
 clean:
-	rm -f pcre pcap
+	rm -f pcre pcap pcap_sort
