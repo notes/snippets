@@ -1,0 +1,65 @@
+[フォーマット]
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|          Source Port          |       Destination Port        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                        Sequence Number                        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                    Acknowledgment Number                      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Data |           |U|A|P|R|S|F|                               |
+| Offset| Reserved  |R|C|S|S|Y|I|            Window             |
+|       |           |G|K|H|T|N|N|                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           Checksum            |         Urgent Pointer        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                    Options                    |    Padding    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                             data                              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+[略語]
+TCB    Transmission Control Block
+RTT    Round Trip Time
+SRTT   Smoothed RTT
+RTO    Retransmission Timeout
+SEQ    Sequence Number
+ACK    Acknowledgement Number
+UP     Urgent Pointer
+MSS    Maximum Segment Size
+SMSS   Sender MSS
+RMSS   Receiver MSS
+MTU    Maximum Transfer Unit
+PMTUD  Path MTU Discovery
+MSL    Maximum Segment Lifetime
+ISN    Initial Sequence Number
+ISS    Initial Send Sequence Number
+IRS    Initial Receive Sequence Number
+IW     Initial Window
+RWND   Receive Window
+CWND   Congestion Window
+LFN    Long Fat Network
+
+[MSS]
+ - RFC879
+   - 昔々「通信相手の環境について特段の知識が無い限りIPデータグラムは
+     576bytes以内にすべし」という不文律があった
+   - 576という数字の根拠は定かではないが、MLアーカイブなどからの断片
+     情報によると、BBNで使われていたルータのIPデータグラム1つ分の内部
+     バッファが576bytesの固定サイズだったことに由来しているらしい
+   - TCP/IP headerを各々20bytesとしてTCP Payloadは536bytes以内
+   - これがMSSオプション不在時のTCPセグメントの最大サイズとなった
+   - 現実の実装では更に余裕を見て512が採用されている
+   - MSSオプションは自分の通信環境の知識を「アナウンス」する仕組み
+   - お互いSYNパケットにMSSオプションを付ける
+   - MSSオプションの値は送出I/FのMTU-40とするのが普通
+   - MTUは通信メディアごとに大体決まっていてEthernetなら1500
+   - 大体の物理ネットワーク環境でMSS=1500-40=1460となる
+
+[Initial Window]
+[Slow Start]
+[Congestion Avoidance]
+[Fast Retransmit]
+[Fast Recovery]
+[Urgent Pointer]
