@@ -1,3 +1,5 @@
+TCP Related Documents Cheet Sheet
+
 [フォーマット]
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -36,28 +38,95 @@ MSL    Maximum Segment Lifetime
 ISN    Initial Sequence Number
 ISS    Initial Send Sequence Number
 IRS    Initial Receive Sequence Number
-IW     Initial Window
+IW     Initial (Congestion) Window
 RWND   Receive Window
 CWND   Congestion Window
 LFN    Long Fat Network
 
-[MSS]
+[Maximum Segment Size]
+ - RFC793
+   - TCPオプション番号2で16bitのMSSをアナウンス可能
+   - お互いSYNパケットにだけオプションを付ける
+   - オプションが無ければセグメントサイズ無制限(仕様文面上は)
+   - MSSオプションの値は送出I/FのMTU-40とするのが普通
+   - MTUは通信メディアごとに大体決まっていてEthernetなら1500
+   - つまりEthernet環境ではMSS=1500-40=1460となることが多い
  - RFC879
-   - 昔々「通信相手の環境について特段の知識が無い限りIPデータグラムは
+   - 当時「通信相手の環境について特段の知識が無い限りIPデータグラムは
      576bytes以内にすべし」という不文律があった
    - 576という数字の根拠は定かではないが、MLアーカイブなどからの断片
      情報によると、BBNで使われていたルータのIPデータグラム1つ分の内部
      バッファが576bytesの固定サイズだったことに由来しているらしい
    - TCP/IP headerを各々20bytesとしてTCP Payloadは536bytes以内
-   - これがMSSオプション不在時のTCPセグメントの最大サイズとなった
-   - 現実の実装では更に余裕を見て512が採用されている
+   - これがMSSオプション不在時の最大セグメントのデファクトとなった
+   - 現実の実装では更に余裕を見てキリの良い512が採用されている
    - MSSオプションは自分の通信環境の知識を「アナウンス」する仕組み
-   - お互いSYNパケットにMSSオプションを付ける
-   - MSSオプションの値は送出I/FのMTU-40とするのが普通
-   - MTUは通信メディアごとに大体決まっていてEthernetなら1500
-   - 大体の物理ネットワーク環境でMSS=1500-40=1460となる
+     - 断じて「ネゴシエーション」の仕組みではない
 
-[Initial Window]
+[Initial Sequence Number]
+ - RFC793
+   - ISNの選択は単にランダムなだけではダメと明記
+   - その目的は「直前のTCPの残骸と混ざらないようにする」こと
+   - 4us毎にカウントアップする32bitクロックからISNを決定
+   - 4.55時間で32bitを1周するので大丈夫だというのが当時の議論
+   - この32bitクロックは容易に推測可能でセキュリティ上問題あり
+ - RFC1323
+   - TCP開始前に2*MSL以上待てばISN選択はどうでもいいとの指摘
+ - RFC1948
+   - 32bitクロック推測によるセキュリティ問題の軽減案
+   - ISN = M + F(localip, localport, remoteip, remoteport)
+   - MはRFC793のアルゴリズムと同じ32bitクロック
+   - Fはハッシュ関数と秘密鍵による外部から推測不可能な要約関数
+   - 何らかの契機で秘密鍵を更新する仕組みがあれば尚良い
+   - MITM可能な攻撃者には無効な仕組みであることに注意
+ - draft-ietf-tcpm-rfc1948bis
+   - 上記RFCをInformationalからStandards Trackに昇格議論中
+
+[Initial Congestion Window]
+ - RFC793
+   - 特段の規定無し
+   - 初期の実装はRWND一杯まで使い切るものが多かった
+ - RFC2001
+   - 初めてMSS 1セグメント分と明記される
+ - RFC2414
+   - IW = min(4*MSS, max(2*MSS, 4380 bytes)) の式が初出
+   - 4380は3*1460すなわち3*MSSのこと
+   - 次のように言い換えられる
+            MSS < 1095  IW = 4*MSS
+     1095 < MSS < 2190  IW = 3*MSS
+     2190 < MSS         IW = 2*MSS
+ - draft-ietf-tcpm-initcwnd
+   - IWを10*MSSにする提案が議論中
+
+[Zero Window Probing]
+ - RFC793
+   - RWND=0となった後にそこからの脱出を検知する仕組み
+   - TXはRWND=0の時でも1byteの再送を繰り返す
+   - RXはそれにACKする義務があるためRWNDが回復したらすぐに分かる
+ - RFC1122
+   - RFC793の明確化
+   - TXはRWND=0になってからRTO経過後にZWPを開始する
+   - その後のZWPインターバルは徐々に拡大するのが良い
+ - draft-ietf-tcpm-persist
+   - RFC1122に厳密に従うとDoS脆弱性となることを指摘
+   - ZWPの規則よりローカルのリソース管理ポリシーが優越する
+   - アプリケーションからZWP優越を明示された場合はその限りでない
+
+[Keep Alive]
+ - RFC793
+   - Keep-Aliveについての言及は無い
+ - RFC1122
+   - 通信の途絶えたTCPでTXが定期的に生存確認をする仕組み
+   - そうしなければリソース占有し続けるTCPの回収目的
+   - TXが送信するSEGの中身は空データ推奨
+   - 実装としては直前の1byteを含むSEGを送る場合もあった
+   - RXが生きていればACKが返る
+   - RXが死んでいればRSTが返る
+   - 仕様と関係なく実装が普及してしまったことの言及
+   - Keep-Aliveのデフォルトインターバルは2時間
+   - Keep-AliveはOn-Off可能でデフォルトはOffとすること
+   - 短所として帯域の浪費と無駄なTCP切断の可能性を指摘
+
 [Slow Start]
 [Congestion Avoidance]
 [Fast Retransmit]
