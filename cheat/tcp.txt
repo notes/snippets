@@ -42,6 +42,7 @@ IW     Initial (Congestion) Window
 RWND   Receive Window
 CWND   Congestion Window
 LFN    Long Fat Network
+SWS    Silly Window Syndrome
 
 [Maximum Segment Size]
  - RFC793
@@ -61,7 +62,7 @@ LFN    Long Fat Network
    - これがMSSオプション不在時の最大セグメントのデファクトとなった
    - 現実の実装では更に余裕を見てキリの良い512が採用されている
    - MSSオプションは自分の通信環境の知識を「アナウンス」する仕組み
-     - 断じて「ネゴシエーション」の仕組みではない
+   - 断じて「ネゴシエーション」の仕組みではない
 
 [Initial Sequence Number]
  - RFC793
@@ -97,6 +98,29 @@ LFN    Long Fat Network
      2190 < MSS         IW = 2*MSS
  - draft-ietf-tcpm-initcwnd
    - IWを10*MSSにする提案が議論中
+
+[Nagle Alhorithm]
+ - RFC896
+   - 輻輳問題の多数の軽減策のうちのひとつ
+   - ARAPNETのIMP技術では輻輳問題は起こらなかった
+   - ARAPANETでは概してどのネットワークも帯域が一定で、IMPのキャパシ
+     ティは過剰であり、スロットリング機能も備えていたため
+   - 多様な帯域幅の外部NWと相互接続が始まると輻輳問題が顕著になった
+   - 輻輳の原因のひとつに小さなパケットがある
+   - ここではタイマーとは違う適応的解決策を提案
+     - ACK未処理のセグメントが残っている間は次のパケットを送らない
+     - ただし一度のflush機会に数パケットを同時送信するケースは含まない
+     - 端的に言うとRWNDが最大になるのを待って一気に吐き出す戦略
+   - 対向ホストがDelayed ACKを採用した時の相性が悪い
+   - かつて(1960年代)はタイマーによる解決策が採用されていた
+     - 200-500ms程度経過するまえは小さなパケットを送らないルール
+     - ヤマが当たれば更に送信要求が来てそれらを1パケットにまとめられる
+     - 例外として改行が含まれていれば即時送信する
+     - この解決策はユーザーのinteractivityを犠牲にしている
+
+[Delayed ACK]
+
+[Selective ACK]
 
 [Zero Window Probing]
  - RFC793
