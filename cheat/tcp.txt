@@ -29,6 +29,7 @@ RTO    Retransmission Timeout
 SEQ    Sequence Number
 ACK    Acknowledgement Number
 UP     Urgent Pointer
+WL     Last Window Update
 MSS    Maximum Segment Size
 SMSS   Sender MSS
 RMSS   Receiver MSS
@@ -88,7 +89,7 @@ SWS    Silly Window Syndrome
    - 特段の規定無し
    - 初期の実装はRWND一杯まで使い切るものが多かった
  - RFC2001
-   - 初めてMSS 1セグメント分と明記される
+   - 初めてIWは1*MSSと明記される
  - RFC2414
    - IW = min(4*MSS, max(2*MSS, 4380 bytes)) の式が初出
    - 4380は3*1460すなわち3*MSSのこと
@@ -99,34 +100,67 @@ SWS    Silly Window Syndrome
  - draft-ietf-tcpm-initcwnd
    - IWを10*MSSにする提案が議論中
 
-[Nagle Alhorithm]
+[Nagle Algorithm]
  - RFC896
    - 輻輳問題の多数の軽減策のうちのひとつ
-   - ARAPNETのIMP技術では輻輳問題は起こらなかった
-   - ARAPANETでは概してどのネットワークも帯域が一定で、IMPのキャパシ
+   - ARPANETのIMP技術では輻輳問題は起こらなかった
+   - ARPANETでは概してどのネットワークも帯域が一定で、IMPのキャパシ
      ティは過剰であり、スロットリング機能も備えていたため
    - 多様な帯域幅の外部NWと相互接続が始まると輻輳問題が顕著になった
    - 輻輳の原因のひとつに小さなパケットがある
-   - ここではタイマーとは違う適応的解決策を提案
-     - ACK未処理のセグメントが残っている間は次のパケットを送らない
-     - ただし一度のflush機会に数パケットを同時送信するケースは含まない
-     - 端的に言うとRWNDが最大になるのを待って一気に吐き出す戦略
+   - Nagleが提案した適応的解決策は以下の通り
+     - ACK待ちSEGが残っている間は次のSEGを送らない
+     - ただし一度のflush機会に数SEGを同時送信するのはOK
+     - RWNDが最大になるのを待って一気にデータ送信する戦略と言える
    - 対向ホストがDelayed ACKを採用した時の相性が悪い
    - かつて(1960年代)はタイマーによる解決策が採用されていた
-     - 200-500ms程度経過するまえは小さなパケットを送らないルール
-     - ヤマが当たれば更に送信要求が来てそれらを1パケットにまとめられる
+     - 小さなSEGは200-500ms程度待ってから送るルール
+     - ヤマが当たれば追加送信要求が来て1パケットにまとめられる
      - 例外として改行が含まれていれば即時送信する
      - この解決策はユーザーのinteractivityを犠牲にしている
 
 [Delayed ACK]
+ - RFC793
+   - ACK送信は遅延すべきでないとの指摘
+   - さもなければ無用な再送が発生するため
+   - 輻輳に対する配慮として、小さなSEGに対してはRWNDを更新せずにACKを
+     送り、その後バッファが十分大きくなった時点でACK+新RWNDを返すとい
+     う戦略は許容するとの記述
+ - RFC813
+   - RFC793にはcorrectnessばかりでperformanceの規定が無いとの指摘
+   - correctnessだけに配慮した実装による通信性能悪化をSWSと呼ぶ
+   - SWSの解決策を2つ提示
+   - 1つ目はRFC793にもあるRX側での小さなSEGに対するRWND更新の延期
+     - この場合RWND更新頻度は減るがACKそのものは減らない
+     - TX側の別解としてCWNDが一定割合以下ならSEGを送らない方式も
+     - このTX側別解はNagle Algorithmと似ている
+   - 2つ目の解がDelayed ACK
+     - 以下の条件を満たせばすぐ次のSEGが来ると予想してACKを延期
+       - PUSHフラグがセットされていない
+       - すぐにでも通知すべきRWND更新情報が無い
+     - この場合ACK個数とRWND更新頻度の両方が減る
+     - 延期後アテが外れて次SEGが来なければ適切なタイマーでACKを返す
+     - 当時の妥当なタイマーとして200-300msを推奨
+     - しかし適応的なタイマー秒数選択が望ましいとの記述もあり
+   - これらのアルゴリズムには2つの側面があることに注意
+     - SEGサイズの細切れ化を防ぐことで輻輳を軽減する
+     - 処理SEG数の減少によって両端のCPU使用率を削減する
+ - RFC1122
+   - ACK遅延秒数は最大0.5sまでにすべき
+   - MSS一杯のストリーミングでは2SEGごとに最低1ACKを返すべき
+   - Telnetなどの端末セッションでは、ACK遅延の挿入によって1SEGの中に
+     ACK/RWND更新/文字Echoが相乗り可能になるとの実例を指摘
+   - ACK遅延によってTX側のRTT評価が不正確になるとの指摘
 
+[PUSH Flag]
 [Selective ACK]
 
 [Zero Window Probing]
  - RFC793
    - RWND=0となった後にそこからの脱出を検知する仕組み
    - TXはRWND=0の時でも1byteの再送を繰り返す
-   - RXはそれにACKする義務があるためRWNDが回復したらすぐに分かる
+   - RXはその1byteのSEGを受信出来ようと出来まいとACKする義務がある
+   - この規則によりRX側でRWNDが回復したらTX側にも確実に伝わる
  - RFC1122
    - RFC793の明確化
    - TXはRWND=0になってからRTO経過後にZWPを開始する
@@ -141,7 +175,7 @@ SWS    Silly Window Syndrome
    - Keep-Aliveについての言及は無い
  - RFC1122
    - 通信の途絶えたTCPでTXが定期的に生存確認をする仕組み
-   - そうしなければリソース占有し続けるTCPの回収目的
+   - そうしなければリソースを占有し続けるTCPの回収が目的
    - TXが送信するSEGの中身は空データ推奨
    - 実装としては直前の1byteを含むSEGを送る場合もあった
    - RXが生きていればACKが返る
