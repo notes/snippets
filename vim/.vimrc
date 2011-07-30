@@ -4,6 +4,7 @@ set incsearch
 set hlsearch
 set hidden
 set ruler
+set ignorecase
 # set encoding=utf-8
 # set termencoding=utf-8
 set fileencodings=utf-8
