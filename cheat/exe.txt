@@ -1,0 +1,172 @@
+TODO: Split into exe format and memory management
+
+[Raw COM]
+ - http://en.wikipedia.org/wiki/COM_file
+ - ヘッダやメタデータを含まない
+ - ファイル全体が0x100にロードされる単なるメモリイメージ
+ - CP/M時代からの名残り形式
+   - ファイル形式が同じなだけで命令セットは非互換
+ - プログラムの最大サイズは65,280bytes(16bit-256)
+ - すべてのコードとデータを1Segmentにロードする
+ - 0x0000-0x0100: PSP
+   - Program Segment Prefix
+   - argvなど実行中プログラムのメタ情報格納領域
+   - http://en.wikipedia.org/wiki/Program_Segment_Prefix
+ - 0x0100-0xFFFF: 生プログラムコード
+
+[DOS EXE]
+ - http://en.wikipedia.org/wiki/DOS_executable
+ - 先頭2bytesのMZ(0x4D5A)が判別マジック
+   - このファイル形式を設計したMark Zbikowskiのイニシャル
+ - 0x06にRelocation Tableの要素数
+ - 0x08にHeader Size
+   - Header Size+1から実行開始
+   - Header SizeはParagraph(=16bytes)単位で数える
+   - 16bytesとは1Mメモリを16bits Addressingで使う時のSegment間距離
+ - 0x18にRelocation Tableへのポインタ
+ - COMと違って複数Segmentにデータをロードできる
+ - そのロード位置のメタ情報がRelocation Table
+ - 各Segmentは64Kだが切替によって640Kの物理メモリを使えた
+ - 640KはIBM PCのアーキテクチャ上の制限による
+ - 物理メモリの先頭640KをConventional Memoryという
+   - 640K-1Mの範囲をUMA(Upper Memory Area)という
+   - UMA領域の物理メモリを切替て使う方式をExpanded Memoryという
+   - 1M以降の範囲をExtended Memoryという
+   - Extended Memory先頭約64KbytesをHMA(High Memory Address)という
+ - PSPのロード位置はメモリ先頭ではなく動的に決まる
+   - プログラム開始時はDSレジスタにアドレスが入る
+   - それ以外のタイミングならINT21,62で得られる
+ - 同一ディレクトリに同名のRaw COMとDOS EXEがあるとCOM優先
+   - 一時期これを悪用してnotepad.comなどのウイルスが流行った
+   - WindowsではPATHEXT環境変数に優先度を設定する
+
+  typedef struct _IMAGE_DOS_HEADER {  // sizeof: 0x1a
+      WORD  e_magic;      // 0x00: MZ Header signature
+      WORD  e_cblp;       // 0x02: Bytes on last page of file
+      WORD  e_cp;         // 0x04: Pages in file (512 bytes per page)
+      WORD  e_crlc;       // 0x06: Count of relocation table items
+      WORD  e_cparhdr;    // 0x08: Size of header in paragraphs
+      WORD  e_minalloc;   // 0x0a: Minimum extra paragraphs needed
+      WORD  e_maxalloc;   // 0x0c: Maximum extra paragraphs needed
+      WORD  e_ss;         // 0x0e: Initial (relative) SS value
+      WORD  e_sp;         // 0x10: Initial SP value
+      WORD  e_csum;       // 0x12: Checksum
+      WORD  e_ip;         // 0x14: Initial IP value
+      WORD  e_cs;         // 0x16: Initial (relative) CS value
+      WORD  e_lfarlc;     // 0x18: File address of relocation table
+  } IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;
+
+[Windows EXE]
+ - 最初の0x80bytesをDOS Stubという
+ - 0x00-0x40はDOS EXE互換ヘッダだがほとんど0x00で空っぽ
+ - 0x06はRelocation Tableの要素数で通常0x00が入る
+ - 0x08はHeader Sizeで通常0x40が入る
+   - DOSはこれ+1から実行開始する
+   - つまり0x40-0x80にエラー出力を仕込んでおけば良い
+ - 0x1EはRelocation Tableで通常0x40が入る
+ - 0x3CはPE Headerへのポインタで通常0x80が入る
+ - 0x80以降がPE HeaderつまりPE形式としての本体
+
+  typedef struct _IMAGE_DOS_HEADER {  // sizeof: 0x40
+      WORD  e_magic;      // 0x00: MZ Header signature
+      WORD  e_cblp;       // 0x02: Bytes on last page of file
+      WORD  e_cp;         // 0x04: Pages in file (512 bytes per page)
+      WORD  e_crlc;       // 0x06: Count of relocation table items
+      WORD  e_cparhdr;    // 0x08: Size of header in paragraphs
+      WORD  e_minalloc;   // 0x0a: Minimum extra paragraphs needed
+      WORD  e_maxalloc;   // 0x0c: Maximum extra paragraphs needed
+      WORD  e_ss;         // 0x0e: Initial (relative) SS value
+      WORD  e_sp;         // 0x10: Initial SP value
+      WORD  e_csum;       // 0x12: Checksum
+      WORD  e_ip;         // 0x14: Initial IP value
+      WORD  e_cs;         // 0x16: Initial (relative) CS value
+      WORD  e_lfarlc;     // 0x18: File address of relocation table
+      WORD  e_ovno;       // 0x1a: Overlay number
+      WORD  e_res[4];     // 0x1c: Reserved words
+      WORD  e_oemid;      // 0x24: OEM identifier (for e_oeminfo)
+      WORD  e_oeminfo;    // 0x26: OEM information; e_oemid specific
+      WORD  e_res2[10];   // 0x28: Reserved words
+      DWORD e_lfanew;     // 0x3c: Offset to extended header (NE or PE header)
+  } IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;
+
+  typedef struct _IMAGE_NT_HEADERS {  // sizeof: 0xF8
+      DWORD Signature;                        // 0x00 "PE"\0\0
+      IMAGE_FILE_HEADER FileHeader;           // 0x04
+      IMAGE_OPTIONAL_HEADER32 OptionalHeader; // 0x18
+  } IMAGE_NT_HEADERS32, *PIMAGE_NT_HEADERS32;
+
+  typedef struct _IMAGE_FILE_HEADER {  // sizeof: 0x14
+      WORD  Machine;               // 0x00
+      WORD  NumberOfSections;      // 0x02
+      DWORD TimeDateStamp;         // 0x04
+      DWORD PointerToSymbolTable;  // 0x08
+      DWORD NumberOfSymbols;       // 0x0c
+      WORD  SizeOfOptionalHeader;  // 0x10
+      WORD  Characteristics;       // 0x12
+  } IMAGE_FILE_HEADER, *PIMAGE_FILE_HEADER;
+
+  typedef struct _IMAGE_OPTIONAL_HEADER {  // sizeof: 0xE0
+      // Standard fields
+      WORD  Magic; /* 0x10b or 0x107 */
+      BYTE  MajorLinkerVersion;
+      BYTE  MinorLinkerVersion;
+      DWORD SizeOfCode;
+      DWORD SizeOfInitializedData;
+      DWORD SizeOfUninitializedData;
+      // 0x10
+      DWORD AddressOfEntryPoint;
+      DWORD BaseOfCode;
+      DWORD BaseOfData;
+      // NT additional fields
+      DWORD ImageBase;
+      // 0x20
+      DWORD SectionAlignment;
+      DWORD FileAlignment;
+      WORD  MajorOperatingSystemVersion;
+      WORD  MinorOperatingSystemVersion;
+      WORD  MajorImageVersion;
+      WORD  MinorImageVersion;
+      // 0x30
+      WORD  MajorSubsystemVersion;
+      WORD  MinorSubsystemVersion;
+      DWORD Win32VersionValue;
+      DWORD SizeOfImage;
+      DWORD SizeOfHeaders;
+      // 0x40
+      DWORD CheckSum;
+      /* 0000 = unknown
+         0001 = native
+         0002 = Win GUI
+         0003 = Win Char
+         0005 = OS/2
+         0007 = Posix */
+      WORD  Subsystem;
+      WORD  DllCharacteristics;
+      DWORD SizeOfStackReserve;
+      DWORD SizeOfStackCommit;
+      // 0x50
+      DWORD SizeOfHeapReserve;
+      DWORD SizeOfHeapCommit;
+      DWORD LoaderFlags;
+      DWORD NumberOfRvaAndSizes;
+      // 0x60
+      IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+      // 0xE0
+  } IMAGE_OPTIONAL_HEADER32, *PIMAGE_OPTIONAL_HEADER32;
+
+  typedef struct _IMAGE_SECTION_HEADER {
+      BYTE  Name[IMAGE_SIZEOF_SHORT_NAME];
+      union {
+	    DWORD PhysicalAddress;
+	    DWORD VirtualSize;
+      } Misc;
+      DWORD VirtualAddress;
+      DWORD SizeOfRawData;
+      DWORD PointerToRawData;
+      DWORD PointerToRelocations;
+      DWORD PointerToLinenumbers;
+      WORD  NumberOfRelocations;
+      WORD  NumberOfLinenumbers;
+      DWORD Characteristics;
+  } IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;
+
