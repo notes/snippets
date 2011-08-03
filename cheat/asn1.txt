@@ -1,0 +1,45 @@
+ - ITUによるOSI計画の一環
+ - OSIプロトコル群の仕様記述言語
+ - X.680及びX.690番台
+ - 構造定義とEncode規則が分離されている
+ - 複数のEncode規則がある
+   - BER: Basic Encoding Rule
+   - CER: Canonical Encoding Rule
+   - DER: Distinguished Encoding Rule
+   - XER: XML Encoding Rule
+ - BERはEncode結果が一意ではないが処理効率は良い
+ - DERは同じ構造は必ず同じ結果にEncodeされる
+ - DERとCERはBERに制約を課したサブセット
+ - 電子署名の元データなどはDERで一意に表現するのが望ましい
+ - 仕様から各言語の構造体とEncoder/Decoderを自動生成可能
+ - いずれのEncodeもTLV(tag,length,value)から成る
+ - TagはClassと非負整数のペア
+ - Tagには4種類のClassがある
+   - Universal
+   - Application
+   - Private
+   - Context-Specific
+ - ASN.1にはMACRO機能があった
+   - 最新版の規格では取り除かれた
+   - SNMP/MIBのSMIはMACROで定義されている
+ - ASN.1はAssignmentのリストを記述する
+ - Assignmentの種別
+   - Type Assignment
+   - Value Assignment
+   - ObjectClass Assignment
+
+[Assignment例]
+ - Type Assignment (Certificateという型の定義)
+
+Certificate ::= SEQUENCE  {
+    -- 識別子            型
+    tbsCertificate       TBSCertificate,
+    signatureAlgorithm   AlgorithmIdentifier,
+    signatureValue       BIT STRING  }
+
+ - Value Assignment (id-pkixという値の定義)
+
+id-pkix OBJECT IDENTIFIER ::=
+    { iso(1) identified-organization(3) dod(6) internet(1)
+      security(5) mechanisms(5) pkix(7) }
+
