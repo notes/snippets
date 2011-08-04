@@ -42,6 +42,10 @@
  - Explicit Tag: Tagged TypeのEncode時に元のType情報を保持するTag
    - 利点: 新Typeの知識が無くてもDecodeできる
  - Default Tag: すべてのASN.1 Typeに割り当てられた既定のTag
+ - Extension Marker: 将来拡張する予定のポイントを示すマーク
+   - このマークをEllipsisと言い構文上は"..."で表す
+   - "..."が1つだけの場合はそのポイント以降を拡張する可能性がある
+   - "..."が2つの場合はその間を拡張する可能性がある
  - Object: 通信路上で送受信する必要がある様々な名前つき情報のこと
  - OID: Objectを識別するための一意なID
 
