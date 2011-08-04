@@ -28,8 +28,23 @@
    - Value Assignment
    - ObjectClass Assignment
 
+[Syntax]
+ - typereferenceは先頭を英大文字とする英数文字列
+ - identifier先頭を英小文字とする英数文字列
+ - valuereferenceはidentifierと同じ構文
+ - commentは"--"から次の"--"または行末まで
+ - ビット列は以下のいずれか
+   - bstring: '001101010001110'B
+   - hstring: '3892FA4B22CA23D'H
+ - NamedTypeは"var-name INTEGER, ok BOOLEAN"のように書く
+   - SEQUENCE/SET/CHOICE定義に登場する
+ - NamedValueはNamedTypeに対応して"var-name 100, ok TRUE"のように書く
+   - この形式を見かけることはまず無い
+ - NamedNumberは"a(1), b(2)"のように書く
+
 [Assignment例]
  - Type Assignment (Certificateという型の定義)
+ - typedefのようなもの
 
 Certificate ::= SEQUENCE  {
     -- 識別子            型
