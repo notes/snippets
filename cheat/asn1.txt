@@ -13,12 +13,6 @@
  - 電子署名の元データなどはDERで一意に表現するのが望ましい
  - 仕様から各言語の構造体とEncoder/Decoderを自動生成可能
  - いずれのEncodeもTLV(tag,length,value)から成る
- - TagはClassと非負整数のペア
- - Tagには4種類のClassがある
-   - Universal
-   - Application
-   - Private
-   - Context-Specific
  - ASN.1にはMACRO機能があった
    - 最新版の規格では取り除かれた
    - SNMP/MIBのSMIはMACROで定義されている
@@ -27,6 +21,29 @@
    - Type Assignment
    - Value Assignment
    - ObjectClass Assignment
+
+[Definition]
+ - ASN.1 Specification: 1つまたは複数のASN.1 Module
+ - ASN.1 Module: Type, Valueなどの定義の集合
+ - Type: 名前付きのValueの集合
+ - Type Reference Name: あるコンテキストでのみ有効なTypeの名前
+ - Subtype: 親Typeの部分集合を取り出して定義したType
+ - Tag: 主にプログラムによる読み書き比較を意図したTypeの識別名
+   - Tag Classと非負整数のペアから成る
+   - ValueをEncodeする時は人間可読なType名ではなくTagが対象となる
+ - Tag Class: Tagの有効範囲を示す種別
+   - Universal, Application, Private, Context-Specificの4種類
+   - Universal TagはITU-Tだけが定義してよい
+ - Tagged Type: 既存のTypeを流用してTagだけを置換した新規Type
+   - 例えば"[0] IMPLICIT INTEGER"などはTagged Type
+ - Tagging: あるTypeのTagを置換する行為
+ - Implicit Tag: Tagged TypeのEncode時に元のType情報を保持しないTag
+   - 利点: Encode後のデータサイズが小さくなる
+ - Explicit Tag: Tagged TypeのEncode時に元のType情報を保持するTag
+   - 利点: 新Typeの知識が無くてもDecodeできる
+ - Default Tag: すべてのASN.1 Typeに割り当てられた既定のTag
+ - Object: 通信路上で送受信する必要がある様々な名前つき情報のこと
+ - OID: Objectを識別するための一意なID
 
 [Syntax]
  - typereferenceは先頭を英大文字とする英数文字列
