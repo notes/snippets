@@ -22,7 +22,7 @@
    - Value Assignment
    - ObjectClass Assignment
 
-[Definition]
+[Terminology]
  - ASN.1 Specification: 1つまたは複数のASN.1 Module
  - ASN.1 Module: Type, Valueなどの定義の集合
  - Type: 名前付きのValueの集合
@@ -42,12 +42,26 @@
  - Explicit Tag: Tagged TypeのEncode時に元のType情報を保持するTag
    - 利点: 新Typeの知識が無くてもDecodeできる
  - Default Tag: すべてのASN.1 Typeに割り当てられた既定のTag
+ - Constraint: Subtypeを定義するため部分集合の条件を表す制約
  - Extension Marker: 将来拡張する予定のポイントを示すマーク
    - このマークをEllipsisと言い構文上は"..."で表す
    - "..."が1つだけの場合はそのポイント以降を拡張する可能性がある
    - "..."が2つの場合はその間を拡張する可能性がある
  - Object: 通信路上で送受信する必要がある様々な名前つき情報のこと
  - OID: Objectを識別するための一意なID
+
+[Tag]
+ - 原則はプログラムが読み書きするためのType識別子
+ - 構文が曖昧となる以下のような場合は利用者の人間がTagを明示する
+   - SEQUENCEでOPTIONALやDEFAULTのComponentが連続する場合
+   - SETに同じDefault TagのComponentが複数含まれる場合
+
+[Constraint]
+ - Subtypeを定義する構文
+ - Type名の後ろに制約を記述する
+ - "INTEGER (1..10)" Valueの範囲を限定するValue Range
+ - "BIT STRING SIZE (1..10)" Value長を限定するSize Constraint
+   - MIN/MAXで"Parent Typeの枠内で制限無し"を示す
 
 [Syntax]
  - typereferenceは先頭を英大文字とする英数文字列
@@ -62,6 +76,13 @@
  - NamedValueはNamedTypeに対応して"var-name 100, ok TRUE"のように書く
    - この形式を見かけることはまず無い
  - NamedNumberは"a(1), b(2)"のように書く
+
+[Universal Type]
+ - BIT STRING
+ - SEQUENCE
+ - SET
+ - CHOICE
+ - ENUMERATED
 
 [Assignment例]
  - Type Assignment (Certificateという型の定義)
