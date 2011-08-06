@@ -1,5 +1,13 @@
+[公開鍵暗号]
+ - PKCS: Public Key Cryptography Standards
+
 [RSA]
  - Ron Rivest, Adi Shamir, Len Adelmanが1978年に考案
+ - RSA Data Security社からPKCS#1として公開
+   - PKCS#1 v1.0: 初期の標準だが脆弱性が知られている
+   - PKCS#1 v1.5(RFC2313): 脆弱性に対応済でSSLではこれしか使えない
+   - PKCS#1 v2.0(RFC2437): MD4禁止など変更はあるがv1.5と互換
+   - PCKS#1 v2.1(RFC3447): 機能追加されたがv2.0と互換
  - 鍵配送アルゴリズムとして使える
  - 公開鍵: (n,e)という整数ペア
    - n: 2つの大きな素数p,qの積でModulus(法)という
@@ -8,12 +16,28 @@
    - nのbit数をRSAの鍵長という
    - eと(p-1)(q-1)は互いに素
    - eは通常3,17,65537の中から選ばれる
- - 秘密鍵: d = e^(-1) * mod(p-1)(q-1)
- - 暗号/復号化: C = M^e * mod(n), M = C^d * mod(n)
+ - 秘密鍵: d = e^(-1) mod(p-1)(q-1)
+ - 暗号/復号化: C = M^e mod(n), M = C^d mod(n)
+ - 現実の実装では暗号化対象のbyte列を数値に変換する必要がある
+ - byte列のbit数が鍵長に満たない場合paddingしないと危険
+ - paddingの方法はPKCS#1のバージョンごとに微妙に違う
+ - 暗号化とデジタル署名では用途の要件からpaddingの方法が違う
+   - 暗号化は毎回別のpaddingを出来た方が安全性が高まる
+   - デジタル署名は毎回同じpaddingにならないと困る
 
 [Diffie-Hellman]
  - Whitfield Diffie, Martin Hellmanが1976年に考案
  - 鍵合意アルゴリズムとして使える
+ - 大きな素数pと生成元g<pを選ぶ
+   - ただしすべてのZ<pについてg^W mod(p)=ZとなるWが存在すること
+ - 乱数X<pを秘密鍵とする
+ - Y=g^X mod(p)を公開鍵とする
+ - 送受信者はそれぞれ自分の鍵ペアを生成して公開鍵を交換する
+ - 自分の秘密鍵をX_s(elf)相手の公開鍵をY_o(ther)とする
+ - ZZ=X_s^Y_o mod(p)を計算してそれを共通鍵として合意する
+ - p,g,Y_s,Y_oからZZを計算することはできないと信じられている
+   - しかしできないと証明されたわけではない
+ - ここでYからXを求める問題を離散対数問題という
 
 [Block Cipher]
  - データ量がブロック長に満たないとPaddingする
