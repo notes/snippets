@@ -25,7 +25,7 @@
    - 暗号化は毎回別のpaddingを出来た方が安全性が高まる
    - デジタル署名は毎回同じpaddingにならないと困る
 
-[Diffie-Hellman]
+[DH]
  - Whitfield Diffie, Martin Hellmanが1976年に考案
  - 鍵合意アルゴリズムとして使える
  - 大きな素数pと生成元g<pを選ぶ
@@ -38,6 +38,18 @@
  - p,g,Y_s,Y_oからZZを計算することはできないと信じられている
    - しかしできないと証明されたわけではない
  - ここでYからXを求める問題を離散対数問題という
+
+[DSS]
+ - DSS: Digital Signature Standard
+ - DSA: Digital Signature Algorithmとも言う
+ - NISTが1991年に提案
+ - DSAは標準化前DSSは標準化後の名前
+ - 狙いは署名に使えて暗号化には使えない手順の確立
+ - 署名検証者は署名者のDigestを復元しないまま検証結果だけを得る
+ - RSAとDSSは外形がかなり異なるため移行に当たって混乱もあった
+ - 数学的にはDHと同じ部類
+ - 組み合わせるDigestアルゴリズムはSHA-1しか使えない
+   - 厳密には160bit Digest関数なら良いが該当するのはSHA-1だけ
 
 [Block Cipher]
  - データ量がブロック長に満たないとPaddingする
