@@ -13,9 +13,6 @@
  - 電子署名の元データなどはDERで一意に表現するのが望ましい
  - 仕様から各言語の構造体とEncoder/Decoderを自動生成可能
  - いずれのEncodeもTLV(tag,length,value)から成る
- - ASN.1にはMACRO機能があった
-   - 最新版の規格では取り除かれた
-   - SNMP/MIBのSMIはMACROで定義されている
  - ASN.1はAssignmentのリストを記述する
  - Assignmentの種別
    - Type Assignment
@@ -99,4 +96,10 @@ Certificate ::= SEQUENCE  {
 id-pkix OBJECT IDENTIFIER ::=
     { iso(1) identified-organization(3) dod(6) internet(1)
       security(5) mechanisms(5) pkix(7) }
+
+[Macro]
+ - かつてASN.1にはMACRO機能があった
+ - 1994年版の改訂で取り除かれた
+ - SNMP/MIBのSMIはMACROで定義されている
+ - Typeの構文・Valueの構文・Valueの意味を定義する
 
