@@ -30,7 +30,7 @@ Application Data        <---->        Application Data
  - typedef構文: ExistingType NewType;
  - 数値はすべて最上位byteが先頭に来るByteStream
  - ただしAlignmentの制約が無いのでBigEndianとは違う
- - 固定長数値型: uint8/16/24/32/64
+ - 組込基本型: opaque/uint8/16/24/32/64
  - 固定長列挙型: enum { foo(1), bar(2), baz(3) } TypeName;
    - 列挙型は取り得る最大値で暗黙に固定データ長が決まる
    - データ長を固定するためだけに無名の最大値を含める場合がある
