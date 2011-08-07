@@ -148,6 +148,9 @@ Application Data        <---->        Application Data
  - CertificateVerifyの署名対象データの構成が変わった
  - KDFつまりmaster secretの計算方法が変わった
  - FinishedのDigest計算方法が変わった
+   - MD5とSHA-1の両方を使うのは同じ
+   - SSL3ではMD5とSHA-1を別々に計算して両方の結果を格納
+   - TLS1では1つの計算式に両方のDigest関数を使って12bytesを生成
  - paddingの条件が緩くなった
  - TLS1からSSL3へのFallbackが定義された
 
