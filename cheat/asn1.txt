@@ -101,5 +101,35 @@ id-pkix OBJECT IDENTIFIER ::=
  - かつてASN.1にはMACRO機能があった
  - 1994年版の改訂で取り除かれた
  - SNMP/MIBのSMIはMACROで定義されている
- - Typeの構文・Valueの構文・Valueの意味を定義する
+ - Typeの構文・Valueの構文・Valueの値を定義する
+ - 新しい構文を定義する機能であって組込型を追加する機能ではない
+ - MIBの定義用構文SMIはMACROを使って定義されている
 
+MODULE-IDENTITY MACRO ::=
+BEGIN
+    -- 型の構文
+    TYPE NOTATION ::=
+                  "LAST-UPDATED" value(Update ExtUTCTime)
+                  "ORGANIZATION" Text
+                  "CONTACT-INFO" Text
+                  "DESCRIPTION" Text
+                  RevisionPart
+
+    -- 値の構文
+    VALUE NOTATION ::=
+                  -- 値の実効値
+                  value(VALUE OBJECT IDENTIFIER)
+
+    -- 補助構文規則
+    RevisionPart ::=
+                  Revisions
+                | empty
+    Revisions ::=
+                  Revision
+                | Revisions Revision
+    Revision ::=
+                  "REVISION" value(Update ExtUTCTime)
+                  "DESCRIPTION" Text
+
+    Text ::= value(IA5String)
+END
