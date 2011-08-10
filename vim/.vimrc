@@ -3,6 +3,7 @@ syntax enable
 set incsearch
 set hlsearch
 set hidden
+set number
 set ruler
 set ignorecase
 # set encoding=utf-8
@@ -10,4 +11,6 @@ set ignorecase
 set fileencodings=utf-8
 set shiftwidth=4
 set tabstop=4
-set number
+set expandtab
+set background=dark
+set backspace=eol,start
