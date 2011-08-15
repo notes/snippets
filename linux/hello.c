@@ -5,6 +5,9 @@
 #include <linux/moduleparam.h> 
 #include <linux/proc_fs.h>
 #include <linux/ioctl.h>
+#include <linux/sched.h>
+#include <linux/vt.h>
+#include <linux/workqueue.h>
 #include <asm/uaccess.h>
 
 #define SIOCADDRT 0x890B /* add routing table entry      */
@@ -19,33 +22,51 @@ MODULE_DESCRIPTION("This is a sample module.");
 #define HELLO_WORLD "Hello, World!\n"
 #define HELLO_DEVICE "hello_dev"
 #define HELLO_PROC_NAME "hello_proc"
+#define HELLO_TIMER_INTERVAL (HZ*30)
+#define HELLO_WORKQ_NAME "hello_workq"
 
 static int hello_major = -1;
-static bool hello_busy = 0;
+static bool hello_busy = false;
+static bool hello_shutdown = false;
 static struct proc_dir_entry *hello_proc;
+static struct timer_list hello_timer;
+DECLARE_WAIT_QUEUE_HEAD(hello_wait_queue);
+static void hello_work_func(void *p);
+DECLARE_WORK(hello_work, hello_work_func, NULL);
+static struct workqueue_struct *hello_workq = NULL;
 
 static int hello_param = 0;
 module_param(hello_param, int, S_IRUSR);
 MODULE_PARM_DESC(hello_param, "A sample parameter");
 
-static int hello_open(struct inode *inode, struct file *file)
+static void hello_work_func(void *p)
 {
-    if (hello_busy) {
-        return -EBUSY;
+    static unsigned int count = 0;
+    printk(KERN_INFO "Workqueue Called (%u)\n", count++);
+    if (!hello_shutdown) {
+        queue_delayed_work(hello_workq, &hello_work, HELLO_TIMER_INTERVAL);
     }
-    hello_busy = 1;
+}
+
+static int hello_chrdev_open(struct inode *inode, struct file *file)
+{
     try_module_get(THIS_MODULE);
+    while (hello_busy) {
+        wait_event_interruptible(hello_wait_queue, hello_busy == 0);
+    }
+    hello_busy = true;
     return 0;
 }
 
-static int hello_release(struct inode *inode, struct file *file)
+static int hello_chrdev_release(struct inode *inode, struct file *file)
 {
     hello_busy = 0;
+    wake_up(&hello_wait_queue);
     module_put(THIS_MODULE);
     return 0;
 }
 
-static ssize_t hello_read(struct file *file, char *buf, size_t len, loff_t *off)
+static ssize_t hello_chrdev_read(struct file *file, char *buf, size_t len, loff_t *off)
 {
     int i;
     for (i=0; i<len; i++) {
@@ -54,12 +75,12 @@ static ssize_t hello_read(struct file *file, char *buf, size_t len, loff_t *off)
     return len;
 }
 
-static ssize_t hello_write(struct file *file, const char *str, size_t len, loff_t *off)
+static ssize_t hello_chrdev_write(struct file *file, const char *str, size_t len, loff_t *off)
 {
     return -EIO;
 }
 
-static int hello_ioctl(struct inode *inode, struct file *file, unsigned int ioctl_num, unsigned long ioctl_param)
+static int hello_chrdev_ioctl(struct inode *inode, struct file *file, unsigned int ioctl_num, unsigned long ioctl_param)
 {
     switch (ioctl_num) {
     case SIOCADDRT:
@@ -74,11 +95,11 @@ static int hello_ioctl(struct inode *inode, struct file *file, unsigned int ioct
 }
 
 static struct file_operations hello_ops = {
-    .open = hello_open,
-    .release = hello_release,
-    .read = hello_read,
-    .write = hello_write,
-    .ioctl = hello_ioctl,
+    .open = hello_chrdev_open,
+    .release = hello_chrdev_release,
+    .read = hello_chrdev_read,
+    .write = hello_chrdev_write,
+    .ioctl = hello_chrdev_ioctl,
 };
 
 static ssize_t hello_proc_read(struct file *file, char *buf, size_t len, loff_t *off)
@@ -159,6 +180,14 @@ static void hello_proc_init(void)
     hello_proc->size = 37;
 }
 
+static void hello_tick(unsigned long data)
+{
+    static unsigned int count = 0;
+    printk(KERN_INFO "Timer Expired (%u)\n", count++);
+    hello_timer.expires = jiffies + HELLO_TIMER_INTERVAL;
+    add_timer(&hello_timer);
+}
+
 static int __init hello_init(void)
 {
     hello_major = register_chrdev(0, HELLO_DEVICE, &hello_ops);
@@ -172,6 +201,15 @@ static int __init hello_init(void)
     }
     hello_proc_init();
 
+    init_timer(&hello_timer);
+    hello_timer.function = hello_tick;
+    hello_timer.data = 0;
+    hello_timer.expires = jiffies + HELLO_TIMER_INTERVAL;
+    add_timer(&hello_timer);
+
+    hello_workq = create_workqueue(HELLO_WORKQ_NAME);
+    queue_delayed_work(hello_workq, &hello_work, HZ);
+
     printk(KERN_INFO "Hello, World!\n");
     return 0;
 }
@@ -180,12 +218,20 @@ static void __exit hello_exit(void)
 {
     int unreg_ret;
 
+    del_timer(&hello_timer);
     remove_proc_entry(HELLO_PROC_NAME, &proc_root);
 
     unreg_ret = unregister_chrdev(hello_major, HELLO_DEVICE);
     if (unreg_ret < 0) {
         printk(KERN_INFO "Failed to unregister hello device\n");
     }
+
+    hello_shutdown = true;
+    cancel_delayed_work(&hello_work);
+    flush_workqueue(hello_workq);
+    destroy_workqueue(hello_workq);
+    hello_workq = NULL;
+
     printk(KERN_INFO "Goodbye, World!\n");
 }
 
