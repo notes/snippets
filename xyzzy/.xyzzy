@@ -1,8 +1,8 @@
 (require "isearch")
-(require "ruby-mode")
-(require "py-mode")
-(push '("\\.rb$" . ruby-mode) *auto-mode-alist*)
-(push '("\\.py$" . py-mode) *auto-mode-alist*)
+;(require "ruby-mode")
+;(require "py-mode")
+;(push '("\\.rb$" . ruby-mode) *auto-mode-alist*)
+;(push '("\\.py$" . py-mode) *auto-mode-alist*)
 
 (define-key ctl-x-map #\C-b 'select-buffer)
 (define-key ctl-x-map '(#\r #\k) 'kill-rectangle)
@@ -14,6 +14,6 @@
 
 (setq *default-fileio-encoding* *encoding-utf8n*)
 (setq *default-eol-code* *eol-lf*)
-(setq-default indent-tabs-mode t)
-(setq *c-indent-tabs-mode* t)
-(setq c-indent-level 8)
+(setq-default indent-tabs-mode nil)
+(setq *c-indent-tabs-mode* nil)
+(setq c-indent-level 2)
