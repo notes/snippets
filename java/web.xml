@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.0"
+  xmlns="http://java.sun.com/xml/ns/javaee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://java.sun.com/xml/ns/javaee
+    http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+
+  <display-name>My Context</display-name>
+
+  <listener>
+    <listener-class>test.Listener</listener-class>
+  </listener>
+
+  <!-- for ServletContext -->
+  <context-param>
+    <param-name>name</param-name>
+    <param-value>value</param-value>
+  </context-param>
+
+  <welcome-file-list>
+    <welcome-flie>index.html</welcome-file>
+  </welcome-file-list>
+ 
+  <servlet>
+    <display-name>My Servlet</display-name>
+    <servlet-name>servlet-name</servlet-name>
+    <servlet-class>test.Servlet</servlet-class>
+
+    <!-- for ServletConfig -->
+    <init-param>
+      <param-name>name</param-name>
+      <param-value>value</param-value>
+    </init-param>
+  </servlet>
+ 
+  <servlet-mapping>
+    <servlet-name>servlet-name</servlet-name>
+    <url-pattern>/path/to/servlet</url-pattern>
+  </servlet-mapping>
+ 
+</web-app>
+
