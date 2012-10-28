@@ -18,6 +18,7 @@ $s->listen();
 while (1) {
     my $io = $s->accept();
     my $pid = fork();
+    die "fork() failed" unless defined $pid;
     if ($pid == 0) {
         $pid = fork();
         if ($pid == 0) {
@@ -26,8 +27,6 @@ while (1) {
             print "fork() failed: $!\n";
         }
         exit;
-    } elsif ($pid == -1) {
-        print "fork() failed: $!\n";
     } else {
         waitpid($pid, 0);
     }
