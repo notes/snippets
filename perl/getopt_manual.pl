@@ -1,4 +1,5 @@
 use strict;
+use warnings;
 
 for my $arg (@ARGV) {
     next if $arg !~ /^--/;
@@ -22,4 +23,14 @@ for my $arg (@ARGV) {
             usage();
         }
     }
+}
+
+sub usage {
+    print <<"USAGE";
+main [options]
+  --hello=HELLO
+  --bye=BYE
+  --foo-flag
+  --bar-flag
+USAGE
 }
