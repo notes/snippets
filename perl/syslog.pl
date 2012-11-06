@@ -64,7 +64,7 @@ sub priority {
 
 sub syslog_timestamp {
     my $unixtime = shift;
-    my $locale_save = setlocale(LC_TIME, "C");
+    my $locale_save = setlocale(LC_TIME);
     setlocale(LC_TIME, "C");
     my $timestamp = strftime("%b %e %H:%M:%S", localtime($unixtime));
     setlocale(LC_TIME, $locale_save);
