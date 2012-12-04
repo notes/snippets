@@ -3,32 +3,42 @@ use warnings;
 use Socket;
 use IO::Socket;
 
-my $s = new IO::Socket::INET(
-    LocalAddr => "127.0.0.1:10000",
-    Proto => "tcp",
-    ReuseAddr => 1,
+main() unless caller(0);
+
+sub main {
+    my $listen_addr = "127.0.0.1:10000";
+    my $sock = new IO::Socket::INET(
+        LocalAddr => $listen_addr,
+        Proto => "tcp",
+        ReuseAddr => 1,
     );
 
-if (!$s) {
-    die $!;
-}
+    die "Failed to create socket: $!" unless defined $sock;
+    die "Failed to listen ${listen_addr}: $!" unless $sock->listen();
 
-$s->listen();
-
-while (1) {
-    my $io = $s->accept();
-    my $pid = fork();
-    die "fork() failed" unless defined $pid;
-    if ($pid == 0) {
-        $pid = fork();
-        if ($pid == 0) {
-            server_main($io);
-        } elsif ($pid == -1) {
-            print "fork() failed: $!\n";
+    while (1) {
+        my $io = $sock->accept();
+        unless ($io) {
+            warn "Failed to accept connection: $!";
+            next;
         }
-        exit;
-    } else {
-        waitpid($pid, 0);
+        my $pid = fork();
+        die "Failed to fork child process: $!" unless defined $pid;
+        if ($pid == 0) {
+            # child
+            $pid = fork();
+            die "Failed to fork child process: $!" unless defined $pid;
+            if ($pid == 0) {
+                # server process (child)
+                server_main($io);
+            } else {
+                # intermediate process (parent)
+                exit;
+            }
+        } else {
+            # parent
+            waitpid($pid, 0);
+        }
     }
 }
 
