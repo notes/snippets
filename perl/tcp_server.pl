@@ -15,6 +15,7 @@ sub main {
 
     die "Failed to create socket: $!" unless defined $sock;
     die "Failed to listen ${listen_addr}: $!" unless $sock->listen();
+    print "Started to listen connection on ${listen_addr}\n";
 
     while (1) {
         my $io = $sock->accept();
@@ -31,10 +32,8 @@ sub main {
             if ($pid == 0) {
                 # server process (child)
                 server_main($io);
-            } else {
-                # intermediate process (parent)
-                exit;
             }
+            exit;
         } else {
             # parent
             waitpid($pid, 0);
