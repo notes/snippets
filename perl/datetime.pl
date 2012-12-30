@@ -2,14 +2,18 @@
 
 use strict;
 use warnings;
+use List::Util;
 use Time::localtime qw();
+use Time::Local qw(timegm timelocal);
 
 our @DAY_OF_WEEK = qw(Sun Mon Tue Wed Thu Fri Sat);
 our @MONTH_NAME = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
 
 print format_822date(time), "\n";
 print format_iso8601(time), "\n";
+print format_generalized_time(time), "\n";
 print format_asctime(time), "\n";
+print parse_822date(format_822date(time)), "\n";
 
 sub format_822date {
     my $t = Time::localtime::localtime(shift);
@@ -18,9 +22,45 @@ sub format_822date {
         $t->year + 1900, $t->hour, $t->min, $t->sec, timezone_offset() / 3600);
 }
 
+sub parse_822date {
+    my $time = shift;
+    my $pattern = qr/
+        \A
+        (?P<wday>\w{3}),  \s+                          # day-of-week
+        (?P<mday>\d{1,2}) \s+                          # day-of-month
+        (?P<month>\w{3})  \s+                          # month name
+        (?P<year>\d{4})   \s+                          # 4-digit year
+        (?P<hour>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})  # hour-min-sec
+        (?: \s+ (?P<tzoffset>[+-]\d{4}) )?             # timezone offset
+        \z
+    /x;
+    return undef unless $time =~ $pattern;
+
+    my ($wday, $mday, $month, $year, $hour, $min, $sec, $tzoffset) =
+        @+{qw(wday mday month year hour min sec tzoffset)};
+    my $imonth = List::Util::first {
+        uc($MONTH_NAME[$_]) eq uc($month) 
+    } 0..$#MONTH_NAME;
+    return undef unless defined $imonth;
+
+    if (defined $tzoffset) {
+        my $gmt = timegm($sec, $min, $hour, $mday, $imonth, $year);
+        return $gmt - ($tzoffset / 100) * 3600
+    } else {
+        return timelocal($sec, $min, $hour, $mday, $imonth, $year);
+    }
+}
+
 sub format_iso8601 {
     my $t = Time::localtime::localtime(shift);
     return sprintf("%04d-%02d-%02dT%02d:%02d:%02d%+03d:00",
+        $t->year + 1900, $t->mon, $t->mday, $t->hour, $t->min, $t->sec,
+        timezone_offset() / 3600);
+}
+
+sub format_generalized_time {
+    my $t = Time::localtime::localtime(shift);
+    return sprintf("%04d%02d%02d%02d%02d%02d%+03d00",
         $t->year + 1900, $t->mon, $t->mday, $t->hour, $t->min, $t->sec,
         timezone_offset() / 3600);
 }
@@ -36,7 +76,6 @@ sub format_asctime {
 }
 
 sub timezone_offset {
-    use Time::Local qw(timegm timelocal);
     my @t = localtime(time);
     return timegm(@t) - timelocal(@t);
 }
