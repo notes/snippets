@@ -1,0 +1,4 @@
+#!/bin/sh
+# from http://workstuff.tumblr.com/post/20464780085/something-is-deeply-broken-in-os-x-memory-management
+sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.dynamic_pager.plist
+
