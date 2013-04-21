@@ -8,6 +8,9 @@ aws ec2 describe-key-pairs
 aws ec2 run-instances --image-id ami-173fbf16 --min-count 1 --max-count 1 \
   --security-groups my-security-group --key-name my-key-pair
 
-# check running instance
+# check running instances
 aws ec2 describe-instances --instance-ids i-1234567c
+
+# stop instances 
+aws ec2 stop-instances --instance-ids i-1234567c
 
