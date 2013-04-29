@@ -49,7 +49,7 @@ Adding another tree with a subdirectory.
     100644 blob 9daeafb9864cf43055ae93beb0afd6c7d144bfa4    test.txt
     100644 blob 180cf8328022becee9aaa2577a8f84ea2b9f3827    test2.txt
 
-Commit the tree.  A commit is tree, author, committer and a commit log.
+Commit the tree.  A commit consists of a tree, an author, a committer and a commit log.
 
     $ echo 'first commit' | git commit-tree 8221e7bfbd32af0bd106412eca8efff32a854197
     00461ebf46abfae23d1d3b1812c39d7a93f08eed
@@ -66,7 +66,7 @@ Adding the second commit as a successor to the first one.
     $ git update-index test2.txt 
     $ git write-tree
     84985fc1ea6f057dd8124b38116631935a402aba
-    $ echo 'second commit' | git commit-tree 84985fc1ea6f057dd8124b38116631935a402aba -p 00461ebf46abfae23d1d3b1812c39d7a93f08eed
+    $ echo 'second commit' | git commit-tree 84985f -p 00461e
     257c91017fcaeb0bde73d3cc4e828f27c86a7de9
     $ git log 257c91017fcaeb0bde73d3cc4e828f27c86a7de9
     commit 257c91017fcaeb0bde73d3cc4e828f27c86a7de9
