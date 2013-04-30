@@ -21,4 +21,10 @@ curl --data name=value http://example.jp/
 # POST multipart/form-data
 curl --form name=value --form file=@/etc/services http://example.jp/uploader
 
+# save cookie
+curl --cookie-jar cookie.txt http://example.jp/
+
+# load previously saved cookie
+curl --cookie cookie.txt http://example.jp/
+
 
