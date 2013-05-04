@@ -19,6 +19,18 @@ aws ec2 allocate-address
 # check allocated IP address
 aws ec2 describe-addresses
 
+# create a security group
+aws ec2 create-security-group --group-name default-group --description "Default Group"
+
+# add a permission rule to the security group
+aws ec2 authorize-security-group-ingress --group-name default-group --ip-permissions '[
+{ "to_port": 8080, 
+  "ip_protocol": "tcp", 
+  "ip_ranges": [ { "cidr_ip": "192.168.0.0/24" } ], 
+  "user_id_group_pairs": [], 
+  "from_port": 8080 }
+]'
+
 # search AMI images
 aws ec2 describe-images --owners amazon --filters '[
   { "name":"root-device-type",    "values":"instance-store" },
