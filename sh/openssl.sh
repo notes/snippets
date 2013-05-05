@@ -1,3 +1,5 @@
+# cf) http://www.madboa.com/geek/openssl/
+
 # generate 10-bytes random data in hex format
 openssl rand -hex 10
 
@@ -20,4 +22,21 @@ echo -n "testtesttesttest" | \
 #   -pass: password for deriving key and IV
 #          file:filename or fd:file_descriptor can be specified
 echo -n "testtesttesttest" | openssl enc -aes-256-cbc -a -nopad -pass pass:password
+
+# delete passphrase from encrypted RSA private key
+openssl rsa -in encrypted_key.pem -out plain_key.pem
+
+# create new CSR (certificate signing request)
+#   -nodes: not encrypt private key
+#   -days: 
+openssl req -new -newkey rsa:1024 -out csr.pem -keyout key.pem -nodes -days 365 \
+  -subj "/C=JP/ST=Tokyo/L=Chiyoda/O=My Company/OU=My Unit/CN=www.example.jp"
+
+# create self-signed certificate
+openssl req -new -newkey rsa:1024 -x509 -out cert.pem -keyout key.pem -nodes -days 365 \
+  -subj "/C=JP/ST=Tokyo/L=Chiyoda/O=My Company/OU=My Unit/CN=www.example.jp"
+
+# sign certificate privided within CSR
+openssl ca -keyfile ca_key.pem -cert ca_cert.pem -in csr.pem -out cert.pem
+
 
