@@ -27,4 +27,6 @@ curl --cookie-jar cookie.txt http://example.jp/
 # load previously saved cookie
 curl --cookie cookie.txt http://example.jp/
 
+# allow incomplete SSL certificate
+curl --insecure https://example.jp/
 
