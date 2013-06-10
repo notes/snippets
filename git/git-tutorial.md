@@ -22,15 +22,20 @@ Update any configuration you need to change:
 
 where options mean:
 
-  * --system: system global configuration
-  * --global: current user global configuration
-  * --local: repository local configuration
+    --system  system global configuration
+    --global  current user global configuration
+    --local   repository local configuration
 
 Add a file to the repository:
 
     $ echo test > test
     $ git add test
     $ git commit
+
+Create an archive file:
+
+    $ git config --local tar.umask 0022
+    $ git archive --format=tgz --prefix=prefix-version/ HEAD > prefix-version.tgz
 
 Fire up a web interface:
 
