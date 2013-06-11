@@ -1,0 +1,47 @@
+#!/usr/bin/expect --
+
+if {$argc != 2} {
+  puts "Usage: [file tail $argv0] hostname command"
+  exit 1
+}
+
+proc getpassword {prompt} {
+  stty -echo
+  send_user -- $prompt 
+  expect_user -re "(.*)\n"
+  send_user "\n"
+  stty echo
+  return $expect_out(1,string)
+}
+
+set hostname [lindex $argv 0]
+set command [lindex $argv 1]
+set password [getpassword "Password for $hostname: "]
+
+set timeout 10
+
+spawn ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $hostname
+
+expect_after timeout {
+  puts "Abort for unexpected timeout"
+  exit 1
+}
+
+expect -ex "password: "
+send "$password\r"
+expect {
+  -ex "Last login:" {}
+  -ex "Permission denied" {
+    puts "Login failed"
+    exit 1
+  }
+}
+
+expect -ex "]$ "
+send "$command\r"
+
+expect -ex "]$ "
+send "exit\r"
+
+expect eof
+
