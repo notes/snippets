@@ -6,6 +6,9 @@ curl http://example.jp/
 # regular HEAD
 curl --head http://example.jp/
 
+# regular PUT
+curl --request PUT --heder 'Content-Type: text/plain' --data-binary @/etc/hosts http://example.jp/entity
+
 # output detail
 curl --verbose http://example.jp/
 
