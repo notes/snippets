@@ -33,10 +33,10 @@ aws ec2 authorize-security-group-ingress --group-name default-group --ip-permiss
 
 # search AMI images
 aws ec2 describe-images --owners amazon --filters '[
-  { "name":"root-device-type",    "values":"instance-store" },
+  { "name":"root-device-type",    "values":"ebs" },
   { "name":"architecture",        "values":"x86_64" },
   { "name":"virtualization-type", "values":"paravirtual" },
-]'
+]' | jq -c -M '.Images[] | [.Name, .ImageId]'
 
 # run AMI public instance
 aws ec2 run-instances --image-id ami-173fbf16 --min-count 1 --max-count 1 \
