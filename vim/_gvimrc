@@ -1,0 +1,17 @@
+syntax enable
+set guifont=MS\ Gothic
+set cursorcolumn
+set cursorline
+set columns=150
+set lines=40
+set incsearch
+set hlsearch
+set hidden
+set number
+set ruler
+set ignorecase
+set fileencodings=utf-8
+set shiftwidth=4
+set tabstop=4
+set expandtab
+set backspace=eol,start
