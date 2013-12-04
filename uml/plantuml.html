@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>PlantUML生成</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script>
+$(function() {
+  var last_time = 0;
+  var last_data = null;
+  var interval = 10000;
+  var try_reload = function() {
+    var now = $.now();
+    var source = $('#source').val();
+    if (now > last_time + interval && source != last_data) {
+      last_time = now;
+      last_data = source;
+      var post_data = { text: source };
+      $("#message").text("処理中...");
+      $.ajax({url:'plantuml.py', data:post_data, type:'post'}).done(function(image_data) {
+        var image = $('<img id="target">');
+        image.attr('src', 'data:image/png;base64,' + image_data);
+        $('#target').replaceWith(image);
+      }).always(function() {
+        $("#message").text("");
+      });
+    }
+    setTimeout(try_reload, interval);
+  };
+  setTimeout(try_reload, 10);
+  $(document).on('change keyup', '#source', try_reload);
+});
+</script>
+</head>
+
+<body>
+<section style="text-align:center">
+<h2>PlantUML自動生成</h2>
+<textarea id='source' style="text-align: left" name='text' rows='10' cols='100'>
+@startuml
+Alice->Bob: Hello, World!
+@enduml
+</textarea>
+<br>
+<img id='target' src='about:blank' style='display:none'>
+<br>
+<div id="message"></div>
+</section>
+</body>
+</html>
