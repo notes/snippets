@@ -33,9 +33,9 @@ aws ec2 authorize-security-group-ingress --group-name default-group --ip-permiss
 
 # search AMI images
 aws ec2 describe-images --owners amazon --filters '[
-  { "name":"root-device-type",    "values":"ebs" },
-  { "name":"architecture",        "values":"x86_64" },
-  { "name":"virtualization-type", "values":"paravirtual" },
+  { "Name":"root-device-type",    "Values":["ebs"] },
+  { "Name":"architecture",        "Values":["x86_64"] },
+  { "Name":"virtualization-type", "Values":["paravirtual"] },
 ]' | jq -c -M '.Images[] | [.Name, .ImageId]'
 
 # run AMI public instance
